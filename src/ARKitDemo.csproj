@@ -15,7 +15,4 @@
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
       <CodesignKey>iPhone Developer</CodesignKey>
     </PropertyGroup>
-    <ItemGroup>
-      <Folder Include="AR\" />
-    </ItemGroup>
 </Project>
