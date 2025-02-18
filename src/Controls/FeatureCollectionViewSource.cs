@@ -2,7 +2,7 @@ using ARKitDemo.Models;
 
 namespace ARKitDemo.Controls;
 
-public class FeatureCollectionViewSource(List<Feature> features, Action<Feature> onClientSelected)
+internal class FeatureCollectionViewSource(List<Feature> features, Action<Feature> onClientSelected)
     : UICollectionViewDataSource, IUICollectionViewDelegate
 {
     public override nint GetItemsCount(UICollectionView collectionView, nint section) => features.Count;

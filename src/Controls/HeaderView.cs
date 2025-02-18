@@ -2,7 +2,7 @@ using ImageIO;
 
 namespace ARKitDemo.Controls;
 
-public sealed class HeaderView : UIView
+internal sealed class HeaderView : UIView
 {
     private readonly UIImageView _gifImageView;
     private const double FrameDelay = 0.1;
@@ -83,8 +83,7 @@ public sealed class HeaderView : UIView
         for (var i = 0; i < frameCount; i++)
         {
             using var cgImage = imageSource.CreateImage(i, null!);
-            if (cgImage == null)
-                continue;
+            if (cgImage == null) continue;
 
             frames.Add(UIImage.FromImage(cgImage));
             totalDuration += FrameDelay;

@@ -2,7 +2,7 @@ using ARKitDemo.Models;
 
 namespace ARKitDemo.Controls;
 
-public sealed class FeatureCollectionViewCell: UICollectionViewCell
+internal sealed class FeatureCollectionViewCell: UICollectionViewCell
 {
     private readonly UIImageView _icon;
     private readonly UILabel _nameLabel;
