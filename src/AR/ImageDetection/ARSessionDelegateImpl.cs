@@ -2,7 +2,7 @@ using ARKit;
 
 namespace ARKitDemo.AR.ImageDetection;
 
-public class ArSessionDelegateImpl : ARSessionDelegate
+internal class ArSessionDelegateImpl : ARSessionDelegate
 {
     public override void DidFail(ARSession session, NSError error) => 
         Console.WriteLine($"AR Session Failed: {error.LocalizedDescription}");

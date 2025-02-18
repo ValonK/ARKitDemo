@@ -3,7 +3,7 @@ using SceneKit;
 
 namespace ARKitDemo.AR.ImageDetection;
 
-public class ImageDetectionArSceneDelegate(ImageDetectionViewController viewController) : ARSCNViewDelegate
+internal class ImageDetectionArSceneDelegate(ImageDetectionViewController viewController) : ARSCNViewDelegate
 {
     public override void DidAddNode(ISCNSceneRenderer renderer, SCNNode node, ARAnchor anchor)
     {
@@ -11,18 +11,17 @@ public class ImageDetectionArSceneDelegate(ImageDetectionViewController viewCont
         {
             try
             {
-                if (anchor is ARImageAnchor imageAnchor)
-                {
-                    Console.WriteLine($"Detected Image: {imageAnchor.ReferenceImage.Name}");
-                    viewController.Images.TryGetValue($"{imageAnchor.ReferenceImage.Name}.png", out var text);
+                if (anchor is not ARImageAnchor imageAnchor) return;
+                
+                Console.WriteLine($"Detected Image: {imageAnchor.ReferenceImage.Name}");
+                viewController.Images.TryGetValue($"{imageAnchor.ReferenceImage.Name}.png", out var text);
 
-                    var textPlaneNode = CreateBlurredTextPlane(text);
-                    textPlaneNode.Position = new SCNVector3(0, 0.1f, 0);
-                    node.AddChildNode(textPlaneNode);
+                var textPlaneNode = CreateBlurredTextPlane(text);
+                textPlaneNode.Position = new SCNVector3(0, 0.1f, 0);
+                node.AddChildNode(textPlaneNode);
 
-                    var lineNode = CreateLineNode(new SCNVector3(0, 0, 0), textPlaneNode.Position, 0.001f);
-                    node.AddChildNode(lineNode);
-                }
+                var lineNode = CreateLineNode(new SCNVector3(0, 0, 0), textPlaneNode.Position, 0.001f);
+                node.AddChildNode(lineNode);
             }
             catch (Exception ex)
             {
@@ -66,13 +65,15 @@ public class ImageDetectionArSceneDelegate(ImageDetectionViewController viewCont
         const float planeWidth = 0.2f;
         const float planeHeight = 0.07f;
         var plane = SCNPlane.Create(planeWidth, planeHeight);
-        plane.FirstMaterial.Diffuse.Contents = renderedImage;
-        plane.FirstMaterial.DoubleSided = true;
+        if (plane.FirstMaterial != null)
+        {
+            plane.FirstMaterial.Diffuse.Contents = renderedImage;
+            plane.FirstMaterial.DoubleSided = true;
+        }
 
         var textPlaneNode = new SCNNode { Geometry = plane };
         textPlaneNode.EulerAngles = new SCNVector3(0, 0, 0);
 
-        // Set pivot so that the bottom center edge of the plane is at the node's origin.
         textPlaneNode.Pivot = SCNMatrix4.CreateTranslation(0, -planeHeight / 2f, 0);
 
         return textPlaneNode;
@@ -88,7 +89,6 @@ public class ImageDetectionArSceneDelegate(ImageDetectionViewController viewCont
 
         var lineNode = new SCNNode { Geometry = cylinder };
 
-        // Positionthe cylinder at the midpoint.
         lineNode.Position = new SCNVector3(
             (start.X + end.X) / 2,
             (start.Y + end.Y) / 2,
