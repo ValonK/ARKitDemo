@@ -18,7 +18,7 @@ internal abstract class BaseViewController : UIViewController
         }
     }
     
-    protected ARWorldTrackingConfiguration CreateWorldTrackingConfiguration(ARPlaneDetection planeDetection)
+    protected static ARWorldTrackingConfiguration CreateWorldTrackingConfiguration(ARPlaneDetection planeDetection)
     {
         return new ARWorldTrackingConfiguration
         {

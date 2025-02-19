@@ -12,7 +12,7 @@ internal class FeatureCollectionViewSource(List<Feature> features, Action<Featur
         var cell = collectionView.DequeueReusableCell("FeatureViewCell", indexPath) as FeatureCollectionViewCell;
         var client = features[indexPath.Row];
         cell?.Configure(client);
-        return cell;
+        return cell!;
     }
 
     [Export("collectionView:didSelectItemAtIndexPath:")]

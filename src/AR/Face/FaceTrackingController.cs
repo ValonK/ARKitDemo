@@ -15,11 +15,11 @@ internal class FaceTrackingController : BaseViewController, IARSCNViewDelegate
         View!.AddSubview(SceneView);
 
         SceneView.Delegate = this;
-
         var device = SceneView.Device;
         if (device != null) _faceGeometry = ARSCNFaceGeometry.Create(device, false);
+        
         if (_faceGeometry is { FirstMaterial: not null })
-            _faceGeometry.FirstMaterial.Diffuse.Contents = UIColor.FromRGBA(1, 0, 0, 0.5f);
+            _faceGeometry.FirstMaterial.Diffuse.Contents = UIColor.FromRGBA(1, 0, 0, 1f);
     }
 
     public override void ViewWillAppear(bool animated)
