@@ -65,7 +65,7 @@ internal class VideoPlacementController : BaseViewController
 
         var planeHitTestResults = SceneView.HitTest(tapLocation, ARHitTestResultType.ExistingPlaneUsingExtent);
         if (planeHitTestResults.Length <= 0) return;
-            
+
         var hitResult = planeHitTestResults[0];
         PlaceVideoNode(hitResult);
     }
@@ -87,8 +87,8 @@ internal class VideoPlacementController : BaseViewController
 
     private void PlaceVideoNode(ARHitTestResult hitResult)
     {
-        const float videoWidth = 0.5f; 
-        const float videoHeight = videoWidth * 9f / 16f; // 16:9 
+        const float videoWidth = 0.5f;
+        const float videoHeight = videoWidth * 9f / 16f;
 
         var videoPlane = SCNPlane.Create(videoWidth, videoHeight);
 
@@ -117,7 +117,7 @@ internal class VideoPlacementController : BaseViewController
         {
             _videoNode.EulerAngles = planeAnchor.Alignment switch
             {
-                ARPlaneAnchorAlignment.Horizontal => new SCNVector3(-(float)Math.PI / 2, 0, 0),// rotate -90.
+                ARPlaneAnchorAlignment.Horizontal => new SCNVector3(-(float)Math.PI / 2, 0, 0),
                 ARPlaneAnchorAlignment.Vertical => new SCNVector3(0, 0, 0),
                 _ => _videoNode.EulerAngles
             };

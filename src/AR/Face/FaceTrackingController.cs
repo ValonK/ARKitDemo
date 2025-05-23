@@ -6,7 +6,6 @@ namespace ARKitDemo.AR.Face;
 internal class FaceTrackingController : BaseViewController, IARSCNViewDelegate
 {
     private ARSCNFaceGeometry _faceGeometry;
-    private SCNNode _faceNode;
 
     public override void ViewDidLoad()
     {
@@ -40,10 +39,7 @@ internal class FaceTrackingController : BaseViewController, IARSCNViewDelegate
     [Export("renderer:nodeForAnchor:")]
     public SCNNode GetNodeForAnchor(ARSCNView renderer, ARAnchor anchor)
     {
-        if (anchor is not ARFaceAnchor) return new SCNNode();
-        _faceNode = new SCNNode { Geometry = _faceGeometry };
-        return _faceNode;
-
+        return anchor is not ARFaceAnchor ? new SCNNode() : new SCNNode { Geometry = _faceGeometry };
     }
 
     [Export("renderer:didUpdateNode:forAnchor:")]

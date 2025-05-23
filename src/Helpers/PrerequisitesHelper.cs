@@ -3,7 +3,7 @@ using AVFoundation;
 
 namespace ARKitDemo.Helpers;
 
-public static class PrerequisitesHelper
+internal static class PrerequisitesHelper
 {
     public static async Task Check(UIViewController controller = null)
     {
@@ -70,7 +70,7 @@ public static class PrerequisitesHelper
         if (controller != null)
             return controller;
 
-        var rootViewController = UIApplication.SharedApplication.KeyWindow.RootViewController;
+        var rootViewController = UIApplication.SharedApplication.KeyWindow!.RootViewController;
         while (rootViewController?.PresentedViewController != null)
         {
             rootViewController = rootViewController.PresentedViewController;

@@ -1,23 +1,23 @@
 using ARKit;
+using ARKitDemo.Extensions;
 using ImageIO;
+using SceneKit;
 
 namespace ARKitDemo.AR.ImageDetection;
 
-internal class ImageDetectionViewController : BaseViewController
+internal class ImageDetectionViewController : BaseViewController, IARSessionDelegate, IARSCNViewDelegate
 {
-    public readonly Dictionary<string, string> Images = new()
+    private readonly Dictionary<string, string> _images = new()
     {
-        {"skruf_logo_1.png", "Skruf"},
+        { "skruf_logo_1.png", "Skruf" },
     };
 
     public override void ViewDidLoad()
     {
         base.ViewDidLoad();
 
-        SceneView.Delegate = new ImageDetectionArSceneDelegate(this);
-        SceneView.Session = new ARSession();
-        SceneView.Session.Delegate = new ArSessionDelegateImpl();
-
+        SceneView.Delegate = this;
+        SceneView.Session.Delegate = this;
         View!.AddSubview(SceneView);
     }
 
@@ -31,7 +31,7 @@ internal class ImageDetectionViewController : BaseViewController
     {
         base.ViewWillAppear(animated);
 
-        var detectionImages = LoadDetectionImages();
+        var detectionImages = LoadReferenceImages();
         if (detectionImages.Count == 0)
         {
             Console.WriteLine("No images loaded for detection.");
@@ -44,8 +44,7 @@ internal class ImageDetectionViewController : BaseViewController
             MaximumNumberOfTrackedImages = (nint)detectionImages.Count
         };
 
-        SceneView.Session.Run(config,
-            ARSessionRunOptions.ResetTracking | ARSessionRunOptions.RemoveExistingAnchors);
+        SceneView.Session.Run(config, ARSessionRunOptions.ResetTracking | ARSessionRunOptions.RemoveExistingAnchors);
     }
 
     public override void ViewWillDisappear(bool animated)
@@ -54,27 +53,20 @@ internal class ImageDetectionViewController : BaseViewController
         SceneView.Session.Pause();
     }
 
-    private NSMutableSet<ARReferenceImage> LoadDetectionImages()
+    private NSMutableSet<ARReferenceImage> LoadReferenceImages()
     {
         var detectionImages = new NSMutableSet<ARReferenceImage>();
 
-        foreach (var imageName in Images.Keys)
+        foreach (var imageName in _images.Keys)
         {
             var image = UIImage.FromBundle(imageName);
-            if (image == null)
+            if (image?.CGImage == null)
             {
                 Console.WriteLine($"Failed to load image: {imageName}");
                 continue;
             }
 
-            if (image.CGImage == null)
-            {
-                Console.WriteLine($"CGImage is null: {imageName}");
-                continue;
-            }
-
-            var referenceImage = new ARReferenceImage(image.CGImage,
-                CGImagePropertyOrientation.Up, 0.1f)
+            var referenceImage = new ARReferenceImage(image.CGImage, CGImagePropertyOrientation.Up, 0.1f)
             {
                 Name = Path.GetFileNameWithoutExtension(imageName)
             };
@@ -84,4 +76,69 @@ internal class ImageDetectionViewController : BaseViewController
 
         return detectionImages;
     }
+
+    public void DidAddNode(ISCNSceneRenderer renderer, SCNNode node, ARAnchor anchor)
+    {
+        InvokeOnMainThread(() =>
+        {
+            if (anchor is not ARImageAnchor imageAnchor) return;
+
+            Console.WriteLine($"Detected Image: {imageAnchor.ReferenceImage.Name}");
+
+            if (!_images.TryGetValue($"{imageAnchor.ReferenceImage.Name}.png", out var text)) return;
+
+            var textPlaneNode = CreateBlurredTextPlane(text);
+            textPlaneNode.Position = new SCNVector3(0, 0.1f, 0);
+            node.AddChildNode(textPlaneNode);
+
+            var lineNode = new SCNVector3(0, 0, 0).CreateLineNode(textPlaneNode.Position, 0.001f);
+            node.AddChildNode(lineNode);
+        });
+    }
+
+    private static SCNNode CreateBlurredTextPlane(string text)
+    {
+        var containerView = new UIView(new CGRect(0, 0, 300, 100)) { BackgroundColor = UIColor.Clear };
+
+        var blurView = new UIVisualEffectView(UIBlurEffect.FromStyle(UIBlurEffectStyle.ExtraDark))
+        {
+            Frame = containerView.Bounds,
+            AutoresizingMask = UIViewAutoresizing.FlexibleWidth | UIViewAutoresizing.FlexibleHeight
+        };
+        containerView.AddSubview(blurView);
+
+        var label = new UILabel(containerView.Bounds)
+        {
+            Text = text,
+            TextAlignment = UITextAlignment.Center,
+            TextColor = UIColor.White,
+            Font = UIFont.BoldSystemFontOfSize(24),
+            AdjustsFontSizeToFitWidth = true,
+            BackgroundColor = UIColor.Clear
+        };
+        containerView.AddSubview(label);
+
+        UIGraphics.BeginImageContextWithOptions(containerView.Bounds.Size, false, 0);
+        containerView.Layer.RenderInContext(UIGraphics.GetCurrentContext());
+        var renderedImage = UIGraphics.GetImageFromCurrentImageContext();
+        UIGraphics.EndImageContext();
+
+        var plane = SCNPlane.Create(0.2f, 0.07f);
+        plane.FirstMaterial!.Diffuse.Contents = renderedImage;
+        plane.FirstMaterial.DoubleSided = true;
+
+        var node = new SCNNode { Geometry = plane };
+        node.Pivot = SCNMatrix4.CreateTranslation(0, -0.035f, 0);
+
+        return node;
+    }
+    
+    public void DidFail(ARSession session, NSError error) =>
+        Console.WriteLine($"AR Session Failed: {error.LocalizedDescription}");
+
+    public void WasInterrupted(ARSession session) =>
+        Console.WriteLine("AR Session was interrupted.");
+
+    public void InterruptionEnded(ARSession session) =>
+        session.Run(session.Configuration!, ARSessionRunOptions.ResetTracking | ARSessionRunOptions.RemoveExistingAnchors);
 }
